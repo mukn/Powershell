@@ -21,6 +21,12 @@ If declared, this overrides the manager assigned by $Division declaration.
 .EXAMPLE
 .\New-NACUserAccount.ps1 -FirstName 'Chris' -LastName 'Kaufman' -RanNum '1234' -Division 'Sales'
 
+PENDING CHANGES
+Wait for user creation in Office 365.
+License user in Office 365.
+Add user groups in Office 365.
+Grant SharePoint permissions.
+
 #>
 
 # Set parameters.
