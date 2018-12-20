@@ -1,4 +1,4 @@
-#
+<#
 .SYNOPSIS
 New-NACUserAccount creates new user accounts and assigns those users to the appropriate users based on their job role.
 .DESCRIPTION
@@ -31,17 +31,17 @@ Grant SharePoint permissions.
 
 # Set parameters.
 param {
-	[Parameter(Mandatory=$True)]
+  [Parameter(Mandatory=$True)]
   [Alias('First')]
   [string]$FirstName,
-	[Parameter(Mandatory=$True)]
+  [Parameter(Mandatory=$True)]
   [Alias('Last')]
   [string]$LastName,
-	[Parameter(Mandatory=$True)]
+  [Parameter(Mandatory=$True)]
   [Alias('SSN')]
   [Alias('Date')]
   [int]$FourDigits,
-	[Parameter(Mandatory=$True)]
+  [Parameter(Mandatory=$True)]
   [string]$Division,
   [Parameter(Mandatory=$False)]
   [string]$Manager,
@@ -49,7 +49,7 @@ param {
   [string]$EmployeeNumber,
   [Parameter(Mandatory=$False)]
   [string]$MobilePhone
-	}
+}
 
 # Set other variables.
 $UserName = "$FirstName.$LastName"
