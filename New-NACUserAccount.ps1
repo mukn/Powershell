@@ -13,7 +13,7 @@ The last name (surname) of the user.
 The randomly assigned four digits to be used with the user's account.
 
 .PARAMETER Division
-The organizational division to be used to define OU as well as manager.
+The organizational division to be used to define OU as well as manager. Selections can be: office, const, servi, sales.
 
 .PARAMETER Manager
 If declared, this overrides the manager assigned by $Division declaration.
@@ -30,7 +30,7 @@ Grant SharePoint permissions.
 #>
 
 # Set parameters.
-param {
+param (
   [Parameter(Mandatory=$True)]
   [Alias('First')]
   [string]$FirstName,
@@ -49,7 +49,7 @@ param {
   [string]$EmployeeNumber,
   [Parameter(Mandatory=$False)]
   [string]$MobilePhone
-}
+)
 
 # Set other variables.
 $UserName = "$FirstName.$LastName"
