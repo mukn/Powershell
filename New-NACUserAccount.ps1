@@ -79,3 +79,9 @@ Get-ADUser -Identity $UserName | Set-ADUser -Add @{ProxyAddresses="SMTP:$UserEma
 # Reset user password and enable account.
 Set-ADAccountPassword -Identity $UserName -Reset
 Set-ADUser -Identity $UserName -Enabled $True
+
+##### Move to Office 365.
+Connect-MsolService
+Connect-AzureAD
+Connect-SPOService -Url https://nacgroup-admin.sharepoint.com
+Add-SPOUser -Site https://nacgroup.sharepoint.com -LoginName $UserName -Group "Team Site Members"
