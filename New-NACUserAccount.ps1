@@ -26,6 +26,7 @@ Wait for user creation in Office 365.
 License user in Office 365.
 Add user groups in Office 365.
 Grant SharePoint permissions.
+Add user information to documentation.
 
 #>
 
@@ -80,8 +81,12 @@ Get-ADUser -Identity $UserName | Set-ADUser -Add @{ProxyAddresses="SMTP:$UserEma
 Set-ADAccountPassword -Identity $UserName -Reset
 Set-ADUser -Identity $UserName -Enabled $True
 
-##### Move to Office 365.
+
+<# Move to Office 365.
+
 Connect-MsolService
 Connect-AzureAD
 Connect-SPOService -Url https://nacgroup-admin.sharepoint.com
 Add-SPOUser -Site https://nacgroup.sharepoint.com -LoginName $UserName -Group "Team Site Members"
+
+#>
