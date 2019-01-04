@@ -27,6 +27,8 @@ License user in Office 365.
 Add user groups in Office 365.
 Grant SharePoint permissions.
 Add user information to documentation.
+Add user to GoCanvas (if applicable).
+Add user to time card (if applicable).
 
 #>
 
