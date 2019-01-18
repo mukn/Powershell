@@ -20,7 +20,8 @@ Tasks to accomplish:
 Extras:
   - Reclaim GoCanvas license (as necessary)
   - Reclaim Barracuda license
-  - Remove USer from GAL
+  - Remove user from GAL
+  - Send message to wireless plan manager
 
 #>
 
