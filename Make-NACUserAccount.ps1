@@ -29,6 +29,7 @@ xDeclare description or job title.
 xWait for user creation in Office 365.
 xLicense user in Office 365.
 Add user groups in Office 365.
+Add user to LAN access group, as necessary.
 xGrant SharePoint permissions.
 Add user information to documentation.
 Add user to GoCanvas (if applicable).
