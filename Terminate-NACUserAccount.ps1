@@ -58,12 +58,15 @@ $Admin365Credentials = Get-Credential
 # Connect to Microsoft cloud resources.
 Connect-MsolService -Credential $Admin365Credentials
 Connect-AzureAD -Credential $Admin365Credentials
+# $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $Admin365Credentials -Authentication Basic -AllowRedirection
+# Import-PSSession $Session -DisableNameChecking
 Connect-SPOService -Url https://nacgroup-admin.sharepoint.com -Credential $Admin365Credentials
 
 # Pull $Username and associated properties.
 $UserProperties = Get-ADUser -Identity $UserName -Properties *
 # Get manager.
 $UserManager = $UserProperties.Manager
+$UserManagerEmail = Get-ADUser -Identity $UserManager | Select-Object -ExpandProperty UserPrincipalName
 # Get home folder.
 $UserHomeDirectory = $UserProperties.HomeDirectory
 # Get group membership.
@@ -73,16 +76,20 @@ $UserEmail = $UserProperties.UserPrincipalName
 
 ## Start actions.
 # Remove user from local AD groups.
-
-# Remove user from GAL.
-
+Foreach ( $Group in $UserGroups ) {
+  Remove-ADGroupMember -Identity $Group -Members $UserName
+}
 # Move to Office 365 and remove user from groups.
 
+# Remove user from GAL.
+# There is no Connect-ExchangeOnline cmdlt at this point and no method of
+# opening a nested PSSession per below. Removal is manual at this point.
+# Enter-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $Admin365Credentials -Authentication Basic -AllowRedirection
 # Forward email messages to user's manager.
 
 # Remove from SharePoint sites.
-
-# Send message to third-party wireless manager and help desk for tracking.
+Remove-SPOUser -LoginName $UserName -Site https://nacgroup.sharepoint.com
+# Send messages to third-party wireless manager and help desk for tracking.
 
 
 
@@ -90,7 +97,8 @@ $UserEmail = $UserProperties.UserPrincipalName
 # After 15 days, send a warning message to user's manager to review before deletion date.
 
 # After 30 days, remove Office 365 license.
-
+# User first needs to be assigned a region, then a license.
+Set-MsolUserLicense -UserPrincipalName $UserEmail -RemoveLicenses "nacgroup:O365_BUSINESS_PREMIUM"
 # After 45 days, mark account for deletion in local AD.
 
 # After 60 days, delete the account.
