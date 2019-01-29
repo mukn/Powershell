@@ -36,6 +36,7 @@ Add user to GoCanvas (if applicable).
 Add user to time card (if applicable).
 Pass Office 365 credentials, somehow.
 Create switch to create a user without licensing.
+Set user manager as OneDrive site reader/contributor/something.
 
 #>
 
