@@ -95,12 +95,15 @@ Get-ADUser -Identity $UserName | Set-ADUser -Add @{ProxyAddresses="SMTP:$UserEma
 Set-ADAccountPassword -Identity $UserName -Reset
 Set-ADUser -Identity $UserName -Enabled $True
 
+# Pull credentials before moving to Office 365.
+$MsolCredential = Get-Credential
+
 # Wait for user account to replicate to Azure AD.
+Write-Host "Pushing information to Microsoft Online..."
 Start-Sleep -Seconds 900
 
 ## Move to Office 365.
 # Sourced from https://docs.microsoft.com/en-us/powershell/azure/active-directory/enabling-licenses-sample?view=azureadps-2.0 on 11 Jan 2019.
-$MsolCredential = Get-Credential
 Connect-MsolService -Credential $MsolCredential
 Connect-AzureAD -Credential $MsolCredential
 

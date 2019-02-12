@@ -162,7 +162,7 @@ Function Get-Password () {
 $SourceData = $NULL; For ($a = 48; $a –le 122; $a++) { $SourceData+=, [char][byte]$a }
 $PlainPassword = Get-Password -Length 12 -SourceData $SourceData
 # Convert password to secure string.
-$SecurePassword = ConvertTo-SecureString $PlainPassword -asplaintext -force
+$SecurePassword = ConvertTo-SecureString $PlainPassword -AsPlainText -Force
 # Set user password to the returned password.
 Set-ADAccountPassword -Identity $UserName -NewPassword $SecurePassword
 
@@ -202,7 +202,7 @@ Foreach ( $Group in $UserGroups ) {
 # Forward email messages to user's manager.
 
 # Remove from SharePoint sites.
-Remove-SPOUser -LoginName $UserName -Site https://nacgroup.sharepoint.com
+Remove-SPOUser -LoginName $UserEmail -Site https://nacgroup.sharepoint.com
 # Send messages to third-party wireless manager and help desk for tracking.
 
 
