@@ -28,7 +28,7 @@ PENDING CHANGES
 xDeclare description or job title.
 xWait for user creation in Office 365.
 xLicense user in Office 365.
-Add user groups in Office 365.
+xAdd user groups in Office 365.
 Add user to LAN access group, as necessary.
 xGrant SharePoint permissions.
 Add user information to documentation.
@@ -62,13 +62,28 @@ param (
   [Parameter(Mandatory=$False)]
   [string]$MobilePhone,
   [Parameter(Mandatory=$False)]
-  [Alias('JobTitle')]
   [string]$Description
+  [Alias('JobTitle')]
 )
 
-# Set other variables.
+# I Set the email address outside the function simply because it will have to be passed between multiple functions
+$global:UserEmail = $FirstName + "." + $LastName + "@nacgroup.com"
+
+<#due to using functions, variables will get passed both into and out of functions.#>
+
+function Create-LocalUser (
+[string]$FirstName,
+[string]$LastName,
+[int]$FourDigits,
+[string]$Division,
+[string]$Manager,
+[string]$EmployeeNumber,
+[string]$MobilePhone,
+[string]$Description,
+$UserEmail) {
+
+# Combine the variables as needed and add info where needed to complete the formatting (edited for clarity)
 $UserName = "$FirstName.$LastName"
-$UserEmail = "$UserName@nacgroup.com"
 $UserTemplate = Get-ADUser -Identity "$Division.Template"
 $ManagerCN = Get-ADUser -Identity $UserTemplate -Properties Manager
 $ProfilePath = ($UserTemplate.DistinguishedName -split ",",2)[1]
@@ -95,38 +110,122 @@ Get-ADUser -Identity $UserName | Set-ADUser -Add @{ProxyAddresses="SMTP:$UserEma
 Set-ADAccountPassword -Identity $UserName -Reset
 Set-ADUser -Identity $UserName -Enabled $True
 
+Write-Host "Pushing information to Microsoft Online..."
+
+# Sync the newly created user to Office 365 and Azure AD
+start-adsyncsynccycle -policytype delta
+
+start-sleep -Seconds 30
+}
+
+<#
+ test to see if the user exists
+# if the user does not exist then return to the top of the statement 
+# and wait before testing
+
+# Wrap all post sync commands into a function that is itself wrapped in an if statement. 
+# This will allow us to loop back if the user is not yet synced 
+#>
+
+function Check-User {
+# This funtion will check if you want to have the user be licensed and then license the user if need be
+# Check to see if this is the first run of the function by checking for a value for in $LicensingInput 
+if ($LicensingInput -neq $Null){
+Write-Host "Do you want the user to be licensed? (y/n)"
+$LicensingInput = Read-Host
+}
+
+# Run the check of if the user is going to be licensed.
+if ($LicensingInput -eq "y") {
+    #If the answer was y then proceed with licensing
+    if ((Get-MsolUser -UserPrincipalName $UserEmail) -ne $Null)
+        {
+        # User first needs to be assigned a region, then a license.
+        $AzureUserName = Get-AzureADUser -SearchString $UserName
+        Set-AzureADUser -ObjectId $AzureUserName.ObjectId -UsageLocation US
+        $LicenseSku = Get-AzureADSubscribedSku | Where-Object {$_.SkuPartNumber -eq 'O365_BUSINESS_PREMIUM'}
+        $License = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicense
+        $License.SkuId = $LicenseSku.SkuId
+        $AssignedLicenses = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicenses
+        $AssignedLicenses.AddLicenses = $License
+        Set-AzureADUserLicense -ObjectId $AzureUserName.ObjectId -AssignedLicenses $AssignedLicenses
+        } 
+            else {
+            start-sleep -Seconds 300
+            Check-User
+            }
+
+} 
+#if the answer was no, exit the function without any further steps
+    elseif ($LicensingInput -eq "n") 
+    {
+    }
+        # If the response was not y or n, tell the user to enter y or n and then begin the loop after the intital question again
+        else 
+        {
+        Write-Host 'Invalid Response. Please enter "y" or "n"'
+        Check-User
+        }
+# Exit Function
+}
+
+function Connect-Office365 {
+
 # Pull credentials before moving to Office 365.
 $MsolCredential = Get-Credential
 
-# Wait for user account to replicate to Azure AD.
-Write-Host "Pushing information to Microsoft Online..."
-Start-Sleep -Seconds 900
-
-## Move to Office 365.
+#Connect to cloud services
 # Sourced from https://docs.microsoft.com/en-us/powershell/azure/active-directory/enabling-licenses-sample?view=azureadps-2.0 on 11 Jan 2019.
 Connect-MsolService -Credential $MsolCredential
 Connect-AzureAD -Credential $MsolCredential
-
-# User first needs to be assigned a region, then a license.
-$AzureUserName = Get-AzureADUser -SearchString $UserName
-Set-AzureADUser -ObjectId $AzureUserName.ObjectId -UsageLocation US
-$LicenseSku = Get-AzureADSubscribedSku | Where-Object {$_.SkuPartNumber -eq 'O365_BUSINESS_PREMIUM'}
-$License = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicense
-$License.SkuId = $LicenseSku.SkuId
-$AssignedLicenses = New-Object -TypeName Microsoft.Open.AzureAD.Model.AssignedLicenses
-$AssignedLicenses.AddLicenses = $License
-Set-AzureADUserLicense -ObjectId $AzureUserName.ObjectId -AssignedLicenses $AssignedLicenses
-
-<# Add the user to the relevant groups.
-### This is on hold as Microsoft does not currently support updating to non-Office 365 groups.
-#########################
-$AzureDistributionLists = "company@nacgroup.com","nac@nacgroup.com","$Division@nacgroup.com"
-ForEach-Object ($_.List -in $AzureDistributionLists) {
-$ListId = Get-AzureADGroup -SearchString $List
-Add-AzureADGroupMember -ObjectId $ListId.ObjectId -RefObjectId $AzureUserName.ObjectId
-}
-#>
-
-# Add new user to the relevant SharePoint site(s) and libraries.
 Connect-SPOService -Url https://nacgroup-admin.sharepoint.com -Credential $MsolCredential
+
+$Session = New-PsSession -configurationname Microsoft.Exchange -Connectionuri https://ps.outlook.com/powershell-liveid?PSVersion=4.0/ -credential $Creds -Authentication Basic -AllowRedirection
+Import-PSSession $Session
+
+}
+
+function AddTo-Sharepoint {
 Add-SPOUser -Site https://nacgroup.sharepoint.com -LoginName $UserName -Group "Team Site Members"
+}
+
+function AddTo-Groups ([string]$Division){
+#import the Division from the parameters
+#Pull list of the groups, extract the displayname property and store that inside a variable
+
+$365Group = get-unifiedgroup | where {$_.DisplayName -match $Division} | select DisplayName
+
+#While the variable itself is a PSCustomObject typ the property inside is a system.string type so we dont need to convert
+
+Add-UnifiedGroupLinks -Identity $365Group.DisplayName -Links $UserEmail -LinkType Members
+
+
+}
+
+
+# Call the functions individually
+Connect-Office365
+
+Create-LocalUser
+
+Check-User
+
+AddTo-Sharepoint
+
+AddTo-Groups
+
+<#
+Josh List todo
+xCreate user without licensing
+(on hold)set manager of user as the admin/editor/reviewer
+xAdd users to office 365 groups. Based on Division Variable
+LAN Access group is based on anyone who accesses reports from sql. LAN-Access
+Adding user info to documentation (csv) and username,password
+ 
+
+Long Term:
+GoCanvas is made by GoCanvas API
+TimeCard has a reference datasheet. Wants info that requires an API call
+
+
+#>
