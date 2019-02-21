@@ -62,8 +62,8 @@ param (
   [Parameter(Mandatory=$False)]
   [string]$MobilePhone,
   [Parameter(Mandatory=$False)]
-  [string]$Description
   [Alias('JobTitle')]
+  [string]$Description
 )
 
 # Set other variables.
