@@ -62,9 +62,9 @@ param (
   [Parameter(Mandatory=$False)]
   [string]$MobilePhone,
   [Parameter(Mandatory=$False)]
-  [string]$Description
   [Alias('JobTitle')]
-)
+  [string]$Description
+  )
 
 # I Set the email address outside the function simply because it will have to be passed between multiple functions
 $global:UserEmail = $FirstName + "." + $LastName + "@nacgroup.com"
@@ -130,7 +130,7 @@ start-sleep -Seconds 30
 function Check-User {
 # This funtion will check if you want to have the user be licensed and then license the user if need be
 # Check to see if this is the first run of the function by checking for a value for in $LicensingInput 
-if ($LicensingInput -neq $Null){
+if ($LicensingInput -ne $Null){
 Write-Host "Do you want the user to be licensed? (y/n)"
 $LicensingInput = Read-Host
 }
