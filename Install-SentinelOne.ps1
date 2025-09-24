@@ -62,11 +62,14 @@ if (!$installFlag) {
 }
 
 # Build JSON and send to API
+$bgColor = "Red"
 if ($installFlag) {
     $level = "Success"
+    $bgColor = "Green"
 } else {
     $level = "Error"
 }
+Write-Host $level -BackgroundColor $bgColor    # Just providing a visual cue for output
 $payload = @{
     Source = $source
     Description = $description
